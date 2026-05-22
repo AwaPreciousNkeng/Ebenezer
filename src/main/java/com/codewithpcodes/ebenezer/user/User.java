@@ -73,7 +73,7 @@ public class User implements UserDetails {
     private boolean emailVerified = false;
     private boolean isActive = true;
 
-    private String oauthProvider;
+    private OauthProvider oauthProvider;
     private String oauthId;
 
     @CreationTimestamp

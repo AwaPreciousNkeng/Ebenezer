@@ -1,7 +1,6 @@
 package com.codewithpcodes.ebenezer.analytics;
 
 import com.codewithpcodes.ebenezer.account.Account;
-import com.codewithpcodes.ebenezer.trade.SnapshotPeriod;
 import com.codewithpcodes.ebenezer.user.User;
 import jakarta.persistence.*;
 import lombok.*;

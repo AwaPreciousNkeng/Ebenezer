@@ -1,4 +1,4 @@
-package com.codewithpcodes.ebenezer.trade;
+package com.codewithpcodes.ebenezer.analytics;
 
 public enum SnapshotPeriod {
     DAILY,
