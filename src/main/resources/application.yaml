@@ -31,6 +31,8 @@ server:
     enabled: true
     mime-types: application/json, text/html
 application:
+  app:
+    frontend-url: http://localhost:3000
   aws:
     s3:
       bucket: ebenezer-bucket

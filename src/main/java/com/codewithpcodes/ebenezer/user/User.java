@@ -70,7 +70,10 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Token> tokens;
 
+    @Builder.Default
     private boolean emailVerified = false;
+
+    @Builder.Default
     private boolean isActive = true;
 
     private OauthProvider oauthProvider;
@@ -82,7 +85,9 @@ public class User implements UserDetails {
     @UpdateTimestamp
     private OffsetDateTime updatedAt;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "user",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
     private List<Account> accounts = new ArrayList<>();
 
     @OneToMany(mappedBy = "user",
@@ -103,5 +108,9 @@ public class User implements UserDetails {
     @Override
     public @NonNull String getUsername() {
         return email;
+    }
+
+    public String getFullName() {
+        return firstName + " " + lastName;
     }
 }
