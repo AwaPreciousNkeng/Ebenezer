@@ -24,6 +24,11 @@ spring:
     port: 587
     username: pcodes
     password: pcodes
+  jackson:
+    serialization:
+      WRITE_DATES_AS_TIMESTAMPS: false
+    deserialization:
+      FAIL_ON_UNKNOWN_PROPERTIES: false
 
 server:
   port: 8080
