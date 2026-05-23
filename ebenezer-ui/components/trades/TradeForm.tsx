@@ -27,13 +27,9 @@ const schema = z.object({
     ]),
     direction: z.enum(['LONG', 'SHORT']),
     status: z.enum(['OPEN', 'CLOSED', 'PARTIAL']).catch('CLOSED'),
-    entryPrice: z.string().or(z.number()).pipe(
-        z.coerce.number().positive()
-    ),
+    entryPrice: z.union([z.string(), z.number()]).transform(Number).pipe(z.number().positive()),
     exitPrice: z.string().or(z.number()).optional().nullable(),
-    quantity: z.string().or(z.number()).pipe(
-        z.coerce.number().positive()
-    ),
+    quantity: z.union([z.string(), z.number()]).transform(Number).pipe(z.number().positive()),
     entryDate: z.string().min(1, 'Required'),
     exitDate: z.string().optional(),
     commission: z.string().or(z.number()).optional().nullable(),
@@ -46,28 +42,28 @@ const schema = z.object({
 }).superRefine((data, ctx) => {
     if (data.exitPrice && Number(data.exitPrice) <= 0) {
         ctx.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: 'custom' as const,
             path: ['exitPrice'],
             message: 'Must be positive',
         });
     }
     if (data.stopLoss && Number(data.stopLoss) <= 0) {
         ctx.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: 'custom' as const,
             path: ['stopLoss'],
             message: 'Must be positive',
         });
     }
     if (data.takeProfit && Number(data.takeProfit) <= 0) {
         ctx.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: 'custom' as const,
             path: ['takeProfit'],
             message: 'Must be positive',
         });
     }
     if (data.plannedRisk && Number(data.plannedRisk) <= 0) {
         ctx.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: 'custom' as const,
             path: ['plannedRisk'],
             message: 'Must be positive',
         });
@@ -76,7 +72,7 @@ const schema = z.object({
         const rating = Number(data.executionRating);
         if (rating < 1 || rating > 5) {
             ctx.addIssue({
-                code: z.ZodIssueCode.custom,
+                code: 'custom' as const,
                 path: ['executionRating'],
                 message: 'Must be between 1 and 5',
             });
@@ -109,9 +105,9 @@ export function TradeForm({
     const {
         register, handleSubmit, control,
         formState: { errors },
-    } = useForm<TradeFormData>({
+    } = useForm<z.input<typeof schema>, any, TradeFormData>({
         resolver: zodResolver(schema),
-        defaultValues,
+        defaultValues: defaultValues as z.input<typeof schema>,
     });
 
     const handleFormSubmit = (data: TradeFormData) => {
