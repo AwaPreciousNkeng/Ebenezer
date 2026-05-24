@@ -40,7 +40,9 @@ application:
     frontend-url: http://localhost:3000
   aws:
     s3:
-      bucket: ebenezer-bucket
+      access-key: AKIA3VTQKOLNOVVIYKMO
+      secret-key: 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
+      bucket: ebenezer-trade-screenshots
       region: us-east-1
   jwt:
     secret: 8wWYjFpCy6Otp48mdnWDgkTjt5IjPPJqAKpqKhzAEZM=

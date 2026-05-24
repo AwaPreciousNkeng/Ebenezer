@@ -6,6 +6,7 @@ import com.codewithpcodes.ebenezer.token.TokenRepository;
 import com.codewithpcodes.ebenezer.token.TokenType;
 import com.codewithpcodes.ebenezer.user.Role;
 import com.codewithpcodes.ebenezer.user.User;
+import com.codewithpcodes.ebenezer.user.UserDto;
 import com.codewithpcodes.ebenezer.user.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
@@ -100,8 +101,17 @@ public class AuthenticationService {
         return AuthenticationResponse.fromAuth(
                 accessToken,
                 refreshToken,
-                user.getId(),
-                user.getFullName()
+                UserDto.builder()
+                        .id(user.getId())
+                        .email(user.getEmail())
+                        .fullName(user.getFullName())
+                        .avatarUrl(user.getAvatarUrl())
+                        .timezone("UTC")
+                        .role(user.getRole())
+                        .isEmailVerified(user.isEmailVerified())
+                        .oauthProvider(user.getOauthProvider())
+                        .createdAt(user.getCreatedAt())
+                        .build()
         );
     }
 
@@ -129,8 +139,17 @@ public class AuthenticationService {
                 AuthenticationResponse authResponse = AuthenticationResponse.fromAuth(
                         accessToken,
                         refreshToken,
-                        user.getId(),
-                        user.getFullName()
+                        UserDto.builder()
+                                .id(user.getId())
+                                .email(user.getEmail())
+                                .fullName(user.getFullName())
+                                .avatarUrl(user.getAvatarUrl())
+                                .timezone("UTC")
+                                .role(user.getRole())
+                                .isEmailVerified(user.isEmailVerified())
+                                .oauthProvider(user.getOauthProvider())
+                                .createdAt(user.getCreatedAt())
+                                .build()
                 );
                 new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
             }
@@ -166,8 +185,17 @@ public class AuthenticationService {
         return AuthenticationResponse.fromAuth(
                 accessToken,
                 refreshToken,
-                savedAdmin.getId(),
-                savedAdmin.getFullName()
+                UserDto.builder()
+                        .id(savedAdmin.getId())
+                        .email(savedAdmin.getEmail())
+                        .fullName(savedAdmin.getFullName())
+                        .avatarUrl(savedAdmin.getAvatarUrl())
+                        .timezone("UTC")
+                        .role(savedAdmin.getRole())
+                        .isEmailVerified(savedAdmin.isEmailVerified())
+                        .oauthProvider(savedAdmin.getOauthProvider())
+                        .createdAt(savedAdmin.getCreatedAt())
+                        .build()
         );
     }
 

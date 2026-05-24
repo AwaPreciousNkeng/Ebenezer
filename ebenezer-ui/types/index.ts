@@ -32,7 +32,6 @@ export interface PageResponse<T> {
 export interface AuthResponse {
     accessToken: string;
     refreshToken: string;
-    tokenType: string;
     user: UserDto;
 }
 

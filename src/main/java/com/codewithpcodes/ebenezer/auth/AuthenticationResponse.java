@@ -1,8 +1,7 @@
 package com.codewithpcodes.ebenezer.auth;
 
+import com.codewithpcodes.ebenezer.user.UserDto;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.util.UUID;
 
 public record AuthenticationResponse(
         @JsonProperty("access_token")
@@ -11,20 +10,17 @@ public record AuthenticationResponse(
         @JsonProperty("refresh_token")
         String refreshToken,
 
-        UUID userID,
-        String fullName
+        UserDto user
 ) {
     public static AuthenticationResponse fromAuth(
             String accessToken,
             String refreshToken,
-            UUID userID,
-            String fullName
+            UserDto user
     ) {
         return new AuthenticationResponse(
                 accessToken,
                 refreshToken,
-                userID,
-                fullName
+                user
         );
     }
 }
