@@ -1,17 +1,17 @@
 'use client';
-import { useState } from 'react';
+import {useState} from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Eye, EyeOff, Loader2, CheckCircle } from 'lucide-react';
-import { toast } from 'sonner';
-import { AxiosError } from 'axios';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { authApi } from '@/lib/api/auth';
+import {useRouter} from 'next/navigation';
+import {useForm} from 'react-hook-form';
+import {zodResolver} from '@hookform/resolvers/zod';
+import {z} from 'zod';
+import {Eye, EyeOff, Loader2, CheckCircle} from 'lucide-react';
+import {toast} from 'sonner';
+import {AxiosError} from 'axios';
+import {Button} from '@/components/ui/button';
+import {Input} from '@/components/ui/input';
+import {Label} from '@/components/ui/label';
+import {authApi} from '@/lib/api/auth';
 
 const schema = z.object({
     firstName: z.string().trim().min(2, 'First name must be at least 2 characters'),
@@ -20,48 +20,27 @@ const schema = z.object({
     password: z
         .string()
         .min(8, 'At least 8 characters')
-        .regex(/[A-Z]/, 'Must contain at least one uppercase letter')
-        .regex(/[a-z]/, 'Must contain at least one lowercase letter')
-        .regex(/[0-9]/, 'Must contain at least one number')
 });
 type FormData = z.infer<typeof schema>;
 
 export default function RegisterPage() {
     const router = useRouter();
     const [showPw, setShowPw] = useState(false);
-    const [done, setDone] = useState(false);
-
+    
     const {
         register, handleSubmit,
-        formState: { errors, isSubmitting },
-    } = useForm<FormData>({ resolver: zodResolver(schema) });
+        formState: {errors, isSubmitting},
+    } = useForm<FormData>({resolver: zodResolver(schema)});
 
     const onSubmit = async (data: FormData) => {
         try {
             await authApi.register(data);
-            setDone(true);
-        } catch (err) {
-            const error = err as AxiosError<{ message?: string }>;
-            const message = error.response?.data?.message || error.message || 'Registration failed';
-            toast.error(message);
+            toast.success('Account created! Please log in.');
+            router.push('/login');
+        } catch (err: any) {
+            toast.error(err.response?.data?.message || "Registration failed.");
         }
     };
-
-    if (done) {
-        return (
-            <div className="text-center space-y-4">
-                <CheckCircle className="w-16 h-16 text-emerald-500 mx-auto" />
-                <h2 className="text-2xl font-bold">Check your email</h2>
-                <p className="text-muted-foreground">
-                    We sent a verification link to your email address.
-                    Click it to activate your account.
-                </p>
-                <Button variant="outline" onClick={() => router.push('/login')}>
-                    Back to Login
-                </Button>
-            </div>
-        );
-    }
 
     return (
         <div className="space-y-8">
@@ -137,7 +116,7 @@ export default function RegisterPage() {
                             className="absolute right-3 top-1/2 -translate-y-1/2
                 text-muted-foreground hover:text-foreground"
                         >
-                            {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+                            {showPw ? <EyeOff size={16}/> : <Eye size={16}/>}
                         </button>
                     </div>
                     {errors.password && (
@@ -149,7 +128,7 @@ export default function RegisterPage() {
 
                 <Button type="submit" className="w-full" disabled={isSubmitting}>
                     {isSubmitting && (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
                     )}
                     Create Account
                 </Button>

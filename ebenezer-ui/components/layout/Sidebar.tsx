@@ -1,13 +1,18 @@
 'use client';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
     LayoutDashboard, TrendingUp, BookOpen,
     BarChart3, Upload, Settings,
-    BookMarked, ChevronRight,
+    BookMarked, ChevronRight, LogOut,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+import { cn, getInitials } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { useAuthStore } from '@/store/authStore';
+import { authApi } from '@/lib/api/auth';
 
 const nav = [
     {
@@ -31,6 +36,18 @@ const nav = [
 
 export function Sidebar() {
     const pathname = usePathname();
+    const router = useRouter();
+    const { user, clearAuth } = useAuthStore();
+
+    const handleLogout = async () => {
+        try {
+            await authApi.logout();
+        } finally {
+            clearAuth();
+            router.push('/login');
+            toast.success('Logged out');
+        }
+    };
 
     return (
         <aside className="hidden lg:flex w-64 flex-col
@@ -77,6 +94,38 @@ export function Sidebar() {
                     </div>
                 ))}
             </ScrollArea>
+
+            {/* User footer */}
+            <div className="border-t border-border p-3">
+                <div className="flex items-center gap-2 px-2 py-2 rounded-lg
+          hover:bg-accent group">
+                    <Avatar className="h-8 w-8 shrink-0">
+                        <AvatarImage src={user?.avatarUrl} />
+                        <AvatarFallback className="bg-primary text-primary-foreground
+              text-xs">
+                            {user?.fullName ? getInitials(user.fullName) : 'U'}
+                        </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">
+                            {user?.fullName ?? 'User'}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">
+                            {user?.email}
+                        </p>
+                    </div>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground
+              hover:text-red-500 shrink-0"
+                        onClick={handleLogout}
+                        title="Log out"
+                    >
+                        <LogOut size={14} />
+                    </Button>
+                </div>
+            </div>
         </aside>
     );
 }

@@ -2,7 +2,7 @@ package com.codewithpcodes.ebenezer.user;
 
 import com.codewithpcodes.ebenezer.exceptions.ResourceNotFoundException;
 import com.codewithpcodes.ebenezer.exceptions.UnauthorizedException;
-import com.codewithpcodes.ebenezer.storage.S3Service;
+import com.codewithpcodes.ebenezer.storage.FileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -18,7 +18,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final S3Service s3Service;
+    private final FileService fileService;
 
     @Transactional(readOnly = true)
     public UserDto getProfile(UUID userId) {
@@ -41,15 +41,7 @@ public class UserService {
 
     public UserDto uploadAvatar(UUID userId, MultipartFile file) {
         User user = findUserById(userId);
-
-        // Delete old avatar if exists
-        if (user.getAvatarUrl() != null) {
-            s3Service.deleteFile(extractS3Key(user.getAvatarUrl()));
-        }
-
-        String s3Key = "avatars/" + userId + "/" +
-                UUID.randomUUID() + getExtension(file);
-        String url = s3Service.uploadFile(s3Key, file);
+        String url = fileService.saveProfilePicture(file, userId);
 
         user.setAvatarUrl(url);
         return UserDto.from(userRepository.save(user));
@@ -75,21 +67,9 @@ public class UserService {
         return new MessageResponse("Account deactivated successfully");
     }
 
-    // -------------------------------------------------------
     private User findUserById(UUID userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("User not found"));
-    }
-
-    private String getExtension(MultipartFile file) {
-        String original = file.getOriginalFilename();
-        return original != null && original.contains(".")
-                ? original.substring(original.lastIndexOf("."))
-                : ".jpg";
-    }
-
-    private String extractS3Key(String url) {
-        return url.substring(url.indexOf("amazonaws.com/") + 14);
     }
 }

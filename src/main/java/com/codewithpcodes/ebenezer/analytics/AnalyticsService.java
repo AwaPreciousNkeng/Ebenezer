@@ -2,6 +2,7 @@ package com.codewithpcodes.ebenezer.analytics;
 
 import com.codewithpcodes.ebenezer.trade.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +16,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class AnalyticsService {
 
     private final TradeRepository tradeRepository;
@@ -22,16 +24,17 @@ public class AnalyticsService {
 
     public TradeSummaryResponse getSummary(
             UUID userId, UUID accountId,
-            OffsetDateTime from, OffsetDateTime to) {
-
+            OffsetDateTime from, OffsetDateTime to
+    ) {
+        log.info("Getting summary for user {} and account {}", userId, accountId);
         TradeSummaryProjection raw =
                 tradeRepository.getSummaryStats(userId, accountId, from, to);
 
-        long total    = raw.getTotalTrades() != null
+        long total = raw.getTotalTrades() != null
                 ? raw.getTotalTrades() : 0L;
-        long wins     = raw.getWinningTrades() != null
+        long wins = raw.getWinningTrades() != null
                 ? raw.getWinningTrades() : 0L;
-        long losses   = raw.getLosingTrades() != null
+        long losses = raw.getLosingTrades() != null
                 ? raw.getLosingTrades() : 0L;
 
         BigDecimal winRate = total > 0
@@ -43,6 +46,7 @@ public class AnalyticsService {
         BigDecimal profitFactor = calculateProfitFactor(
                 raw.getAvgWin(), wins, raw.getAvgLoss(), losses);
 
+        log.info("Gotten summary of analytics for user {} and account {}", userId, accountId);
         return TradeSummaryResponse.builder()
                 .totalTrades(total)
                 .winningTrades(wins)
@@ -59,8 +63,9 @@ public class AnalyticsService {
 
     public List<EquityCurvePoint> getEquityCurve(
             UUID userId, UUID accountId,
-            OffsetDateTime from, OffsetDateTime to) {
-
+            OffsetDateTime from, OffsetDateTime to
+    ) {
+        log.info("Getting equity curve for user {} and account {}", userId, accountId);
         List<DailyPnlProjection> daily =
                 tradeRepository.getEquityCurve(userId, accountId, from, to);
 
@@ -80,17 +85,21 @@ public class AnalyticsService {
     }
 
     public List<SymbolPnlProjection> getPnlBySymbol(
-            UUID userId, UUID accountId) {
+            UUID userId, UUID accountId
+    ) {
+        log.info("Getting pnl by symbol for user {} and account {}", userId, accountId);
         return tradeRepository.getPnlBySymbol(userId, accountId);
     }
 
     public List<DayOfWeekPnlProjection> getPnlByDayOfWeek(
             UUID userId, UUID accountId) {
+        log.info("Getting pnl by day of week for user {} and account {}", userId, accountId);
         return tradeRepository.getPnlByDayOfWeek(userId, accountId);
     }
 
     public DrawdownResponse getMaxDrawdown(
             UUID userId, UUID accountId) {
+        log.info("Getting max drawdown for user {} and account {}", userId, accountId);
         List<BigDecimal> pnlList =
                 tradeRepository.getOrderedPnlList(userId, accountId);
 
@@ -113,14 +122,15 @@ public class AnalyticsService {
     }
 
     public StreakResponse getStreak(UUID userId, UUID accountId) {
+        log.info("Getting streak for user {} and account {}", userId, accountId);
         List<BigDecimal> pnlList =
                 tradeRepository.getOrderedPnlList(userId, accountId);
 
         int currentStreak = 0;
-        int maxWinStreak  = 0;
+        int maxWinStreak = 0;
         int maxLossStreak = 0;
-        int winStreak     = 0;
-        int lossStreak    = 0;
+        int winStreak = 0;
+        int lossStreak = 0;
 
         for (BigDecimal pnl : pnlList) {
             if (pnl.compareTo(BigDecimal.ZERO) > 0) {

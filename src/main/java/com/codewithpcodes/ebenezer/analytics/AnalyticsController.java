@@ -5,6 +5,7 @@ import com.codewithpcodes.ebenezer.trade.DayOfWeekPnlProjection;
 import com.codewithpcodes.ebenezer.trade.SymbolPnlProjection;
 import com.codewithpcodes.ebenezer.trade.TradeSummaryResponse;
 import com.codewithpcodes.ebenezer.user.User;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -16,6 +17,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/analytics")
 @RequiredArgsConstructor
+@Tag(name = "Analytics", description = "Analytics management endpoints")
 public class AnalyticsController {
 
     private final AnalyticsService analyticsService;

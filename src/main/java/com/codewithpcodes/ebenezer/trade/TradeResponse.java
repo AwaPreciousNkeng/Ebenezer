@@ -21,6 +21,8 @@ public class TradeResponse {
     private UUID accountId;
     private String accountName;
     private String symbol;
+    private BigDecimal swap;
+    private String brokerTradeId;
     private AssetClass assetClass;
     private TradeDirection direction;
     private TradeStatus status;
@@ -61,6 +63,8 @@ public class TradeResponse {
                 .accountId(trade.getAccount().getId())
                 .accountName(trade.getAccount().getAccountName())
                 .symbol(trade.getSymbol())
+                .swap(trade.getSwap())
+                .brokerTradeId(trade.getBrokerTradeId())
                 .assetClass(trade.getAssetClass())
                 .direction(trade.getDirection())
                 .status(trade.getStatus())

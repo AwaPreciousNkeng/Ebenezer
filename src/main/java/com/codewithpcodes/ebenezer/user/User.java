@@ -60,18 +60,11 @@ public class User implements UserDetails {
     private String resetPasswordCode;
     private LocalDateTime resetPasswordCodeExpiry;
 
-    @Builder.Default
-    @Column(nullable = false)
-    private Language language = Language.ENGLISH;
-
     @Column(name = "avatar_url", nullable = false)
     private String avatarUrl;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Token> tokens;
-
-    @Builder.Default
-    private boolean emailVerified = false;
 
     @Builder.Default
     private boolean isActive = true;

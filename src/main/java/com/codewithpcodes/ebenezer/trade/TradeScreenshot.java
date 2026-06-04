@@ -25,9 +25,6 @@ public class TradeScreenshot {
     private Trade trade;
 
     @Column(nullable = false)
-    private String s3Key;
-
-    @Column(nullable = false)
     private String url;
 
     private String label; // e.g. 'Entry', 'Exit', 'Setup'

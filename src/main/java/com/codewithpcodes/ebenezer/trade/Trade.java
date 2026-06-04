@@ -1,6 +1,7 @@
 package com.codewithpcodes.ebenezer.trade;
 
 import com.codewithpcodes.ebenezer.account.Account;
+import com.codewithpcodes.ebenezer.importBatch.ImportBatch;
 import com.codewithpcodes.ebenezer.playbook.Playbook;
 import com.codewithpcodes.ebenezer.user.User;
 import jakarta.persistence.*;
@@ -39,8 +40,18 @@ public class Trade {
     @JoinColumn(name = "playbook_id")
     private Playbook playbook;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "import_batch_id")
+    private ImportBatch importBatch;
+
     @Column(nullable = false)
     private String symbol;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal swap = BigDecimal.ZERO;
+
+    @Column(length = 50)
+    private String brokerTradeId;  // Exness Position ID — for duplicate detection
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

@@ -9,7 +9,7 @@ export const authApi = {
         apiClient.post<ApiResponse<{ message: string }>>('/auth/register', data),
 
     login: (data: LoginRequest) =>
-        apiClient.post<ApiResponse<AuthResponse>>('/auth/authenticate', data),
+        apiClient.post<AuthResponse>('/auth/authenticate', data),
 
     logout: () =>
         apiClient.post<ApiResponse<{ message: string }>>('/auth/logout'),

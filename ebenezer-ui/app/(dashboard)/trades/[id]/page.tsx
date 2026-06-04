@@ -19,7 +19,7 @@ import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { tradesApi } from '@/lib/api/trades';
 import {
-    formatCurrency, formatDateTime,
+    formatCurrency, formatPrice, formatDateTime,
     getPnlColor, cn,
 } from '@/lib/utils';
 
@@ -210,11 +210,11 @@ export default function TradeDetailPage() {
                                 {[
                                     {
                                         label: 'Entry Price',
-                                        value: formatCurrency(trade.entryPrice),
+                                        value: formatPrice(trade.entryPrice),
                                     },
                                     {
                                         label: 'Exit Price',
-                                        value: formatCurrency(trade.exitPrice),
+                                        value: formatPrice(trade.exitPrice),
                                     },
                                     { label: 'Quantity', value: String(trade.quantity) },
                                     {
@@ -259,11 +259,11 @@ export default function TradeDetailPage() {
                                 {[
                                     {
                                         label: 'Stop Loss',
-                                        value: formatCurrency(trade.stopLoss),
+                                        value: formatPrice(trade.stopLoss),
                                     },
                                     {
                                         label: 'Take Profit',
-                                        value: formatCurrency(trade.takeProfit),
+                                        value: formatPrice(trade.takeProfit),
                                     },
                                     {
                                         label: 'Planned Risk',

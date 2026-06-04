@@ -1,4 +1,5 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
+import { useAuthStore } from '@/store/authStore';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
 
@@ -11,7 +12,7 @@ export const apiClient = axios.create({
 apiClient.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
         if (typeof window !== 'undefined') {
-            const token = localStorage.getItem('accessToken');
+            const token = useAuthStore.getState().accessToken;
             if (token) {
                 config.headers.Authorization = `Bearer ${token}`;
             }
@@ -33,7 +34,7 @@ apiClient.interceptors.response.use(
             original._retry = true;
             try {
                 const refreshToken = typeof window !== 'undefined'
-                    ? localStorage.getItem('refreshToken')
+                    ? useAuthStore.getState().refreshToken
                     : null;
                 if (!refreshToken) throw new Error('No refresh token');
 
@@ -43,17 +44,16 @@ apiClient.interceptors.response.use(
                 );
 
                 if (data?.data?.accessToken) {
-                    localStorage.setItem('accessToken', data.data.accessToken);
-                    if (data.data.refreshToken) {
-                        localStorage.setItem('refreshToken', data.data.refreshToken);
-                    }
+                    useAuthStore.getState().setTokens(
+                        data.data.accessToken,
+                        data.data.refreshToken,
+                    );
                     original.headers.Authorization = `Bearer ${data.data.accessToken}`;
                     return apiClient(original);
                 }
             } catch {
                 if (typeof window !== 'undefined') {
-                    localStorage.removeItem('accessToken');
-                    localStorage.removeItem('refreshToken');
+                    useAuthStore.getState().clearAuth();
                     window.location.href = '/login';
                 }
             }

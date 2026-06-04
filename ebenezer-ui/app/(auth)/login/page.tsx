@@ -1,18 +1,18 @@
 'use client';
-import { useState } from 'react';
+import {useState} from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
-import { AxiosError } from 'axios';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { authApi } from '@/lib/api/auth';
-import { useAuthStore } from '@/store/authStore';
+import {useRouter} from 'next/navigation';
+import {useForm} from 'react-hook-form';
+import {zodResolver} from '@hookform/resolvers/zod';
+import {z} from 'zod';
+import {Eye, EyeOff, Loader2} from 'lucide-react';
+import {toast} from 'sonner';
+import {AxiosError} from 'axios';
+import {Button} from '@/components/ui/button';
+import {Input} from '@/components/ui/input';
+import {Label} from '@/components/ui/label';
+import {authApi} from '@/lib/api/auth';
+import {useAuthStore} from '@/store/authStore';
 
 const schema = z.object({
     email: z.email('Invalid email'),
@@ -27,18 +27,20 @@ export default function LoginPage() {
 
     const {
         register, handleSubmit,
-        formState: { errors, isSubmitting },
-    } = useForm<FormData>({ resolver: zodResolver(schema) });
+        formState: {errors, isSubmitting},
+    } = useForm<FormData>({resolver: zodResolver(schema)});
 
     const onSubmit = async (data: FormData) => {
         try {
             const res = await authApi.login(data);
-            const { user, accessToken, refreshToken } = res.data.data;
+
+            const {user, access_token: accessToken, refresh_token: refreshToken} = res.data;
             setAuth(user, accessToken, refreshToken);
             toast.success(`Welcome back, ${user.fullName}!`);
             router.push('/dashboard');
         } catch (err) {
             const error = err as AxiosError<{ message?: string }>;
+            console.error("Login submission error caught:", err);
             const message = error.response?.data?.message || error.message || 'Invalid credentials';
             toast.error(message);
         }
@@ -97,7 +99,7 @@ export default function LoginPage() {
                             className="absolute right-3 top-1/2 -translate-y-1/2
                 text-muted-foreground hover:text-foreground"
                         >
-                            {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+                            {showPw ? <EyeOff size={16}/> : <Eye size={16}/>}
                         </button>
                     </div>
                     {errors.password && (
@@ -109,7 +111,7 @@ export default function LoginPage() {
 
                 <Button type="submit" className="w-full" disabled={isSubmitting}>
                     {isSubmitting && (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
                     )}
                     Log In
                 </Button>

@@ -37,20 +37,25 @@ public class Account {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @Builder.Default
     private AccountType accountType = AccountType.LIVE;
 
     @Column(nullable = false)
+    @Builder.Default
     private String currency = "USD";
 
     @Column(precision = 15, scale = 2)
+    @Builder.Default
     private BigDecimal startingBalance = BigDecimal.ZERO;
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean isActive = true;
 
     @OneToMany(mappedBy = "account",
             cascade = CascadeType.ALL,
             orphanRemoval = true)
+    @Builder.Default
     private List<Trade> trades = new ArrayList<>();
 
     @CreationTimestamp

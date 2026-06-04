@@ -24,6 +24,8 @@ public class TradeRequest {
     @NotNull(message = "Direction is required")
     private TradeDirection direction;
 
+    private BigDecimal swap;
+
     private TradeStatus status;
 
     @NotNull(message = "Entry price is required")

@@ -9,7 +9,7 @@ import { StatCard } from '@/components/shared/StatCard';
 import { EquityCurve } from '@/components/analytics/EquityCurve';
 import { RecentTrades } from '@/components/trades/RecentTrades';
 import { PageHeader } from '@/components/shared/PageHeader';
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
+import { Skeleton } from '@/components/ui/skeleton';
 import { analyticsApi } from '@/lib/api/analytics';
 import { tradesApi } from '@/lib/api/trades';
 import { useAccountStore } from '@/store/accountStore';
@@ -61,8 +61,6 @@ export default function DashboardPage() {
         retry: 2,
     });
 
-    if (loadingSummary) return <LoadingSpinner />;
-
     const winRate = summary && summary.totalTrades > 0
         ? ((summary.winningTrades / summary.totalTrades) * 100).toFixed(1)
         : '0';
@@ -83,6 +81,13 @@ export default function DashboardPage() {
             />
 
             {/* Stats Grid */}
+            {loadingSummary ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                        <Skeleton key={i} className="h-[108px]" />
+                    ))}
+                </div>
+            ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
                 <StatCard
                     title="Net P&L (30d)"
@@ -115,12 +120,13 @@ export default function DashboardPage() {
                     icon={Zap}
                 />
             </div>
+            )}
 
             {/* Equity Curve */}
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
                 <div className="xl:col-span-2">
                     {loadingCurve
-                        ? <LoadingSpinner />
+                        ? <Skeleton className="h-[320px] w-full" />
                         : <EquityCurve data={curve ?? []} />}
                 </div>
 

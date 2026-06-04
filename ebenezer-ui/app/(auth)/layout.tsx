@@ -1,9 +1,12 @@
+import { GuestGuard } from '@/components/auth/GuestGuard';
+
 export default function AuthLayout({
                                        children,
                                    }: {
     children: React.ReactNode;
 }) {
     return (
+        <GuestGuard>
         <div className="min-h-screen bg-background flex">
             {/* Left Panel */}
             <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br
@@ -49,5 +52,6 @@ export default function AuthLayout({
                 <div className="w-full max-w-md">{children}</div>
             </div>
         </div>
+        </GuestGuard>
     );
 }

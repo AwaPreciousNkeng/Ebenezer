@@ -13,17 +13,13 @@ import {
     Select, SelectContent, SelectItem,
     SelectTrigger, SelectValue,
 } from '@/components/ui/select';
-import {
-    Dialog, DialogContent, DialogHeader,
-    DialogTitle, DialogFooter,
-} from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
+import { AccountFormDialog } from '@/components/shared/AccountFormDialog';
 import { authApi } from '@/lib/api/auth';
 import { accountsApi } from '@/lib/api/accounts';
 import { useAuthStore } from '@/store/authStore';
-import type { AccountType } from '@/types';
 
 export default function SettingsPage() {
     const qc = useQueryClient();
@@ -40,10 +36,6 @@ export default function SettingsPage() {
 
     // Account dialog
     const [accountOpen, setAccountOpen] = useState(false);
-    const [accName, setAccName] = useState('');
-    const [accBroker, setAccBroker] = useState('');
-    const [accType, setAccType] = useState<AccountType>('LIVE');
-    const [accCurrency, setAccCurrency] = useState('USD');
     const [deleteAccId, setDeleteAccId] = useState<string | null>(null);
 
     const { data: accounts } = useQuery({
@@ -82,24 +74,6 @@ export default function SettingsPage() {
         },
         onError: (err: any) =>
             toast.error(err.response?.data?.message || 'Failed to change password'),
-    });
-
-    const createAccountMutation = useMutation({
-        mutationFn: () =>
-            accountsApi.create({
-                accountName: accName,
-                brokerName: accBroker,
-                accountType: accType,
-                currency: accCurrency,
-            }),
-        onSuccess: () => {
-            toast.success('Account created');
-            qc.invalidateQueries({ queryKey: ['accounts'] });
-            setAccountOpen(false);
-            setAccName('');
-            setAccBroker('');
-        },
-        onError: () => toast.error('Failed to create account'),
     });
 
     const deleteAccountMutation = useMutation({
@@ -291,76 +265,10 @@ export default function SettingsPage() {
                 </CardContent>
             </Card>
 
-            {/* New Account Dialog */}
-            <Dialog open={accountOpen}
-                    onOpenChange={(o) => !o && setAccountOpen(false)}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Add Trading Account</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4 py-2">
-                        <div className="space-y-2">
-                            <Label>Account Name *</Label>
-                            <Input
-                                placeholder="My Live Account"
-                                value={accName}
-                                onChange={(e) => setAccName(e.target.value)}
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Broker</Label>
-                            <Input
-                                placeholder="e.g. Interactive Brokers"
-                                value={accBroker}
-                                onChange={(e) => setAccBroker(e.target.value)}
-                            />
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
-                            <div className="space-y-2">
-                                <Label>Type</Label>
-                                <Select value={accType}
-                                        onValueChange={(v) => setAccType(v as AccountType)}>
-                                    <SelectTrigger>
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="LIVE">Live</SelectItem>
-                                        <SelectItem value="DEMO">Demo</SelectItem>
-                                        <SelectItem value="PROP">Prop Firm</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Currency</Label>
-                                <Select value={accCurrency}
-                                        onValueChange={setAccCurrency}>
-                                    <SelectTrigger>
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {['USD', 'EUR', 'GBP', 'JPY', 'CAD'].map((c) => (
-                                            <SelectItem key={c} value={c}>{c}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </div>
-                    </div>
-                    <DialogFooter>
-                        <Button variant="outline"
-                                onClick={() => setAccountOpen(false)}>
-                            Cancel
-                        </Button>
-                        <Button
-                            onClick={() => createAccountMutation.mutate()}
-                            disabled={!accName || createAccountMutation.isPending}
-                        >
-                            {createAccountMutation.isPending
-                                ? 'Creating...' : 'Create Account'}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            <AccountFormDialog
+                open={accountOpen}
+                onOpenChange={setAccountOpen}
+            />
 
             <ConfirmDialog
                 open={!!deleteAccId}

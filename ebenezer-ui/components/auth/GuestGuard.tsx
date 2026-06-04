@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 
-export function AuthGuard({ children }: { children: React.ReactNode }) {
+export function GuestGuard({ children }: { children: React.ReactNode }) {
     const router = useRouter();
     const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
     const [hydrated, setHydrated] = useState(false);
@@ -16,9 +16,10 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     }, []);
 
     useEffect(() => {
-        if (hydrated && !isAuthenticated) router.replace('/login');
+        if (hydrated && isAuthenticated) router.replace('/dashboard');
     }, [hydrated, isAuthenticated, router]);
 
-    if (!hydrated || !isAuthenticated) return <LoadingSpinner fullScreen />;
+    if (!hydrated) return <LoadingSpinner fullScreen />;
+    if (isAuthenticated) return <LoadingSpinner fullScreen />;
     return <>{children}</>;
 }

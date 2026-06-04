@@ -1,6 +1,8 @@
 package com.codewithpcodes.ebenezer.auth;
 
 import com.codewithpcodes.ebenezer.config.JwtService;
+import com.codewithpcodes.ebenezer.exceptions.DuplicateResourceException;
+import com.codewithpcodes.ebenezer.exceptions.ResourceNotFoundException;
 import com.codewithpcodes.ebenezer.token.Token;
 import com.codewithpcodes.ebenezer.token.TokenRepository;
 import com.codewithpcodes.ebenezer.token.TokenType;
@@ -18,6 +20,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -47,7 +50,7 @@ public class AuthenticationService {
 
         if (userRepository.existsByEmail(request.email())) {
             log.error("Email already exists with email::{}", request.email());
-            throw new IllegalArgumentException("Email already exists with email::" + request.email());
+            throw new DuplicateResourceException("User already exists");
         }
 
 
@@ -62,12 +65,16 @@ public class AuthenticationService {
                 .updatedAt(OffsetDateTime.now())
                 .build();
         userRepository.save(user);
+        log.info("User registered with email::{}", request.email());
     }
 
+    @Transactional
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
+        log.info("Authenticating user with email::{}", request.email());
         User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid credentials"));
+                .orElseThrow(() -> new ResourceNotFoundException("Invalid credentials"));
         checkLockOut(user);
+        log.info("User with email::{} has been found", request.email());
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -75,6 +82,7 @@ public class AuthenticationService {
                             request.password()
                     )
             );
+            log.info("Authenticated user::{}", request.email());
         } catch (Exception e) {
             handleFailedAttempts(user);
             int remainingAttempts = MAX_ATTEMPTS - user.getFailedLoginAttempts();
@@ -91,12 +99,16 @@ public class AuthenticationService {
             );
         }
         resetFailedAttempts(user);
+        log.info("Reset failed attempts");
+
         var accessToken = jwtService.generateToken(user);
         var refreshToken = jwtService.generateRefreshToken(user);
+        log.info("Generated tokens for user with email::{}", request.email());
 
         revokeAllUserTokens(user);
-        saveUserToken(user, accessToken);
+        log.info("Refreshed token::{}", accessToken);
 
+        saveUserToken(user, accessToken);
         log.info("User {} logged in successfully", user.getEmail());
         return AuthenticationResponse.fromAuth(
                 accessToken,

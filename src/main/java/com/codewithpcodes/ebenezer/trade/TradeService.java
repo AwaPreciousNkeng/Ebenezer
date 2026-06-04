@@ -65,8 +65,12 @@ public class TradeService {
                 .symbol(request.getSymbol().toUpperCase().trim())
                 .assetClass(request.getAssetClass())
                 .direction(request.getDirection())
+                .swap(request.getSwap() != null
+                        ? request.getSwap()
+                        : null)
                 .status(request.getStatus() != null
-                        ? request.getStatus() : TradeStatus.CLOSED)
+                        ? request.getStatus()
+                        : TradeStatus.CLOSED)
                 .entryPrice(request.getEntryPrice())
                 .exitPrice(request.getExitPrice())
                 .quantity(request.getQuantity())
@@ -167,6 +171,7 @@ public class TradeService {
         tradeRepository.delete(trade);
         return new MessageResponse("Trade deleted successfully");
     }
+
 
     // -------------------------------------------------------
     private void saveTags(Trade trade, List<TagRequest> tagRequests) {

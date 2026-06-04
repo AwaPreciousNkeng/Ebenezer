@@ -5,7 +5,9 @@ import com.codewithpcodes.ebenezer.user.User;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.type.SqlTypes;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -45,14 +47,17 @@ public class Playbook {
     //        "entry_criteria": ["Above 200MA"],
     //        "allowed_sessions": ["AM"],
     //        "max_daily_trades": 3}
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "JSONB")
     private String rules;
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean isActive = true;
 
     @OneToMany(mappedBy = "playbook",
             fetch = FetchType.LAZY)
+    @Builder.Default
     private List<Trade> trades = new ArrayList<>();
 
     @CreationTimestamp

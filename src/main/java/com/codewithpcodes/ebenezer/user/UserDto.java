@@ -30,9 +30,7 @@ public class UserDto {
                 .email(user.getEmail())
                 .fullName(user.getFullName())
                 .avatarUrl(user.getAvatarUrl())
-                .timezone("UTC")
                 .role(user.getRole())
-                .isEmailVerified(user.isEmailVerified())
                 .oauthProvider(user.getOauthProvider())
                 .createdAt(user.getCreatedAt())
                 .build();

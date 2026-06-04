@@ -39,7 +39,8 @@ public class JournalController {
     public ResponseEntity<ApiResponse<JournalResponse>> getByDate(
             @AuthenticationPrincipal User principal,
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-            LocalDate date) {
+            LocalDate date
+    ) {
         JournalResponse entry =
                 journalService.getByDate(principal.getId(), date);
         return ResponseEntity.ok(ApiResponse.success(entry));

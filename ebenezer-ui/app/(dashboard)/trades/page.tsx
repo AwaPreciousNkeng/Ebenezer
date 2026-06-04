@@ -20,7 +20,7 @@ import { TradeFilters } from '@/components/trades/TradeFilters';
 import { tradesApi } from '@/lib/api/trades';
 import { useAccountStore } from '@/store/accountStore';
 import {
-    formatCurrency, formatDateTime, cn, getPnlBg,
+    formatCurrency, formatPrice, formatDateTime, cn, getPnlBg,
 } from '@/lib/utils';
 import type { TradeFilterParams, TradeResponse } from '@/types';
 
@@ -105,10 +105,10 @@ export default function TradesPage() {
                                     <TableRow
                                         key={trade.id}
                                         className="cursor-pointer hover:bg-accent/50"
+                                        onClick={() => router.push(`/trades/${trade.id}`)}
                                     >
                                         <TableCell>
-                                            <Link href={`/trades/${trade.id}`}
-                                                  className="flex items-center gap-2">
+                                            <div className="flex items-center gap-2">
                                                 <div className={cn(
                                                     'w-7 h-7 rounded-md flex items-center justify-center',
                                                     trade.direction === 'LONG'
@@ -122,7 +122,7 @@ export default function TradesPage() {
                                 text-red-500" />}
                                                 </div>
                                                 <span className="font-semibold">{trade.symbol}</span>
-                                            </Link>
+                                            </div>
                                         </TableCell>
                                         <TableCell>
                                             <Badge
@@ -136,13 +136,11 @@ export default function TradesPage() {
                                                 {trade.direction}
                                             </Badge>
                                         </TableCell>
-                                        <TableCell className="text-sm">
-                                            {formatCurrency(trade.entryPrice)}
+                                        <TableCell className="text-sm tabular-nums">
+                                            {formatPrice(trade.entryPrice)}
                                         </TableCell>
-                                        <TableCell className="text-sm">
-                                            {trade.exitPrice
-                                                ? formatCurrency(trade.exitPrice)
-                                                : '—'}
+                                        <TableCell className="text-sm tabular-nums">
+                                            {formatPrice(trade.exitPrice)}
                                         </TableCell>
                                         <TableCell className="text-sm">
                                             {trade.quantity}
@@ -188,7 +186,7 @@ export default function TradesPage() {
                                                 className="h-7 w-7 text-muted-foreground
                           hover:text-red-500"
                                                 onClick={(e) => {
-                                                    e.preventDefault();
+                                                    e.stopPropagation();
                                                     setDeleteId(trade.id);
                                                 }}
                                             >

@@ -1,28 +1,29 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Loader2, ArrowLeft } from 'lucide-react';
-import { toast } from 'sonner';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {useRouter} from 'next/navigation';
+import {useForm, Controller} from 'react-hook-form';
+import {zodResolver} from '@hookform/resolvers/zod';
+import {z} from 'zod';
+import {Loader2, ArrowLeft} from 'lucide-react';
+import {toast} from 'sonner';
+import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import {Button} from '@/components/ui/button';
+import {Input} from '@/components/ui/input';
+import {Label} from '@/components/ui/label';
+import {Textarea} from '@/components/ui/textarea';
 import {
     Select, SelectContent, SelectItem,
     SelectTrigger, SelectValue,
 } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { PageHeader } from '@/components/shared/PageHeader';
+import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
+import {PageHeader} from '@/components/shared/PageHeader';
 
-import { tradesApi } from '@/lib/api/trades';
-import { playbooksApi } from '@/lib/api/playbooks';
-import { accountsApi } from '@/lib/api/accounts';
-import type { TradeRequest } from '@/types';
+import {tradesApi} from '@/lib/api/trades';
+import {playbooksApi} from '@/lib/api/playbooks';
+import {accountsApi} from '@/lib/api/accounts';
+import {useAccountStore} from '@/store/accountStore';
+import type {TradeRequest} from '@/types';
 
 // Helper to convert empty string inputs back to true undefined
 const emptyToUndefined = z.literal('').transform(() => undefined);
@@ -48,7 +49,8 @@ const schema = z.object({
 
     entryDate: z.string().min(1, 'Required'),
     exitDate: z.union([z.string().min(1), emptyToUndefined, z.undefined()]),
-    playbookId: z.union([z.string().min(1), emptyToUndefined, z.undefined()]),
+    playbookId: z.union([z.string().min(1), emptyToUndefined, z.undefined(),
+        z.literal('none').transform(() => undefined)]),
     notes: z.string().optional(),
 });
 
@@ -59,13 +61,14 @@ type FormOutput = z.output<typeof schema>;
 export default function NewTradePage() {
     const router = useRouter();
     const qc = useQueryClient();
+    const {selectedAccount} = useAccountStore();
 
-    const { data: accounts } = useQuery({
+    const {data: accounts} = useQuery({
         queryKey: ['accounts'],
         queryFn: async () => (await accountsApi.list()).data.data,
     });
 
-    const { data: playbooks } = useQuery({
+    const {data: playbooks} = useQuery({
         queryKey: ['playbooks'],
         queryFn: async () => (await playbooksApi.list()).data.data,
     });
@@ -73,7 +76,7 @@ export default function NewTradePage() {
     // 2. Explicitly type useForm<Input, Context, Output> to eliminate TS2322 & TS2345
     const {
         register, handleSubmit, control,
-        formState: { errors },
+        formState: {errors},
     } = useForm<FormInput, any, FormOutput>({
         resolver: zodResolver(schema),
         defaultValues: {
@@ -81,7 +84,7 @@ export default function NewTradePage() {
             direction: 'LONG',
             assetClass: 'STOCK',
             symbol: '',
-            accountId: '',
+            accountId: selectedAccount?.id ?? '',
             entryDate: '',
             notes: '',
         }
@@ -91,7 +94,7 @@ export default function NewTradePage() {
         mutationFn: (data: TradeRequest) => tradesApi.create(data),
         onSuccess: async () => {
             toast.success('Trade added successfully');
-            await qc.invalidateQueries({ queryKey: ['trades'] });
+            await qc.invalidateQueries({queryKey: ['trades']});
             router.push('/trades');
         },
         onError: () => toast.error('Failed to add trade'),
@@ -113,7 +116,7 @@ export default function NewTradePage() {
                 description="Log a new trade entry"
                 action={
                     <Button variant="outline" onClick={() => router.back()}>
-                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        <ArrowLeft className="mr-2 h-4 w-4"/>
                         Back
                     </Button>
                 }
@@ -131,10 +134,10 @@ export default function NewTradePage() {
                         <div className="space-y-2">
                             <Label>Account *</Label>
                             <Controller name="accountId" control={control}
-                                        render={({ field }) => (
+                                        render={({field}) => (
                                             <Select value={field.value} onValueChange={field.onChange}>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Select account" />
+                                                    <SelectValue placeholder="Select account"/>
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {accounts?.map((a) => (
@@ -166,10 +169,10 @@ export default function NewTradePage() {
                         <div className="space-y-2">
                             <Label>Asset Class *</Label>
                             <Controller name="assetClass" control={control}
-                                        render={({ field }) => (
+                                        render={({field}) => (
                                             <Select value={field.value} onValueChange={field.onChange}>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Select class" />
+                                                    <SelectValue placeholder="Select class"/>
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {['STOCK', 'FUTURES', 'FOREX', 'CRYPTO', 'OPTIONS'].map((v) => (
@@ -184,10 +187,10 @@ export default function NewTradePage() {
                         <div className="space-y-2">
                             <Label>Direction *</Label>
                             <Controller name="direction" control={control}
-                                        render={({ field }) => (
+                                        render={({field}) => (
                                             <Select value={field.value} onValueChange={field.onChange}>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Long or Short" />
+                                                    <SelectValue placeholder="Long or Short"/>
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     <SelectItem value="LONG">Long</SelectItem>
@@ -201,10 +204,10 @@ export default function NewTradePage() {
                         <div className="space-y-2">
                             <Label>Status</Label>
                             <Controller name="status" control={control}
-                                        render={({ field }) => (
+                                        render={({field}) => (
                                             <Select value={field.value} onValueChange={field.onChange}>
                                                 <SelectTrigger>
-                                                    <SelectValue />
+                                                    <SelectValue/>
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     <SelectItem value="CLOSED">Closed</SelectItem>
@@ -313,13 +316,15 @@ export default function NewTradePage() {
                         <div className="space-y-2">
                             <Label>Playbook</Label>
                             <Controller name="playbookId" control={control}
-                                        render={({ field }) => (
-                                            <Select value={field.value ?? ''} onValueChange={field.onChange}>
+                                        render={({field}) => (
+                                            <Select value={field.value ?? 'none'}
+                                                    onValueChange={field.onChange}
+                                            >
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Link to playbook (optional)" />
+                                                    <SelectValue placeholder="Link to playbook (optional)"/>
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="">None</SelectItem>
+                                                    <SelectItem value="none">None</SelectItem>
                                                     {playbooks?.map((p) => (
                                                         <SelectItem key={p.id} value={p.id}>
                                                             {p.name}
@@ -348,7 +353,7 @@ export default function NewTradePage() {
                     </Button>
                     <Button type="submit" disabled={mutation.isPending}>
                         {mutation.isPending && (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
                         )}
                         Save Trade
                     </Button>

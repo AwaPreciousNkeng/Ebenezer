@@ -25,6 +25,18 @@ export function formatPercent(
     return `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
 }
 
+export function formatPrice(
+    value: number | string | null | undefined
+): string {
+    if (value == null || value === '') return '—';
+    const n = typeof value === 'string' ? Number(value) : value;
+    if (!Number.isFinite(n)) return '—';
+    return new Intl.NumberFormat('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 5,
+    }).format(n);
+}
+
 export function formatDate(
     dateStr: string,
     fmt = 'MMM dd, yyyy'

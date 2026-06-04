@@ -1,7 +1,6 @@
-package com.codewithpcodes.ebenezer.util;
+package com.codewithpcodes.ebenezer.importBatch;
 
 import com.codewithpcodes.ebenezer.exceptions.BadRequestException;
-import com.codewithpcodes.ebenezer.handler.ApiResponse;
 import com.codewithpcodes.ebenezer.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.UUID;
 
 @RestController
@@ -21,27 +21,21 @@ public class ImportController {
 
     private final ImportService importService;
 
-    @PostMapping("/csv")
-    public ResponseEntity<ApiResponse<ImportResultResponse>> importCsv(
+    @PostMapping("/statement")
+    public ResponseEntity<ImportBatch> importCsv(
             @AuthenticationPrincipal User principal,
             @RequestParam("file") MultipartFile file,
-            @RequestParam UUID accountId,
-            @RequestParam String brokerName
-    ) {
-
+            @RequestParam UUID accountId
+    ) throws IOException {
         if (file.isEmpty()) {
             throw new BadRequestException("File is empty");
         }
 
         String filename = file.getOriginalFilename();
-        if (filename == null || !filename.endsWith(".csv")) {
-            throw new BadRequestException("Only CSV files are supported");
+        if (filename == null || !filename.endsWith(".pdf")) {
+            throw new BadRequestException("Only PDF files are supported");
         }
 
-        ImportResultResponse result = importService.importCsv(
-                principal.getId(), accountId, file, brokerName);
-
-        return ResponseEntity.ok(ApiResponse.success(
-                "Import completed", result));
+        return ResponseEntity.ok(importService.importFromPdf(file, accountId, principal.getId()));
     }
 }

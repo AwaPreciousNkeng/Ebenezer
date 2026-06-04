@@ -19,14 +19,7 @@ spring:
       host: localhost
       port: 6379
       password:
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: pcodes
-    password: pcodes
   jackson:
-    serialization:
-      WRITE_DATES_AS_TIMESTAMPS: false
     deserialization:
       FAIL_ON_UNKNOWN_PROPERTIES: false
 
@@ -38,12 +31,9 @@ server:
 application:
   app:
     frontend-url: http://localhost:3000
-  aws:
-    s3:
-      access-key: AKIA3VTQKOLNOVVIYKMO
-      secret-key: 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
-      bucket: ebenezer-trade-screenshots
-      region: us-east-1
+  file:
+    uploads:
+      media-output-path: ./uploads
   jwt:
     secret: 8wWYjFpCy6Otp48mdnWDgkTjt5IjPPJqAKpqKhzAEZM=
     expiration: 86400000 #24 hours

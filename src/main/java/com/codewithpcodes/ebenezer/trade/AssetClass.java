@@ -2,8 +2,9 @@ package com.codewithpcodes.ebenezer.trade;
 
 public enum AssetClass {
     STOCK,
-    FUTURES,
+    INDICES,
     FOREX,
     CRYPTO,
-    OPTIONS
+    METALS,
+    ENERGY
 }

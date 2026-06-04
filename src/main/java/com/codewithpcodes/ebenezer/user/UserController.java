@@ -1,6 +1,7 @@
 package com.codewithpcodes.ebenezer.user;
 
 import com.codewithpcodes.ebenezer.handler.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
+@Tag(name = "User Management", description = "User Management endpoints")
 public class UserController {
 
     private final UserService userService;
