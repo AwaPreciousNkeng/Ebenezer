@@ -20,9 +20,12 @@ public class TradeScreenshotResponse {
     private OffsetDateTime uploadedAt;
 
     public static TradeScreenshotResponse from(TradeScreenshot s) {
+        // Expose an authenticated API URL, never the raw filesystem path
+        String apiUrl = "/api/v1/trades/" + s.getTrade().getId()
+                + "/screenshots/" + s.getId() + "/file";
         return TradeScreenshotResponse.builder()
                 .id(s.getId())
-                .url(s.getUrl())
+                .url(apiUrl)
                 .label(s.getLabel())
                 .uploadedAt(s.getUploadedAt())
                 .build();

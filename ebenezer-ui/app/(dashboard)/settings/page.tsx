@@ -9,10 +9,6 @@ import { Label } from '@/components/ui/label';
 import {
     Card, CardContent, CardHeader, CardTitle,
 } from '@/components/ui/card';
-import {
-    Select, SelectContent, SelectItem,
-    SelectTrigger, SelectValue,
-} from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
@@ -26,9 +22,10 @@ export default function SettingsPage() {
     const { user, setUser } = useAuthStore();
     const fileRef = useRef<HTMLInputElement>(null);
 
-    // Profile
-    const [fullName, setFullName] = useState(user?.fullName ?? '');
-    const [timezone, setTimezone] = useState(user?.timezone ?? 'UTC');
+    // Profile — split fullName into parts for the backend
+    const nameParts = user?.fullName?.split(' ') ?? [];
+    const [firstName, setFirstName] = useState(nameParts[0] ?? '');
+    const [lastName, setLastName] = useState(nameParts.slice(1).join(' ') ?? '');
 
     // Password
     const [currentPw, setCurrentPw] = useState('');
@@ -44,7 +41,7 @@ export default function SettingsPage() {
     });
 
     const updateProfileMutation = useMutation({
-        mutationFn: () => authApi.updateProfile({ fullName, timezone }),
+        mutationFn: () => authApi.updateProfile({ firstName, lastName }),
         onSuccess: (res) => {
             setUser(res.data.data);
             toast.success('Profile updated');
@@ -106,7 +103,7 @@ export default function SettingsPage() {
                 <CardContent className="space-y-5">
                     <div className="flex items-center gap-4">
                         <div className="relative">
-                            <Avatar className="h-16 w-16">
+                            <Avatar key={user?.avatarUrl} className="h-16 w-16">
                                 <AvatarImage src={user?.avatarUrl} />
                                 <AvatarFallback className="text-lg bg-primary
                   text-primary-foreground">
@@ -142,36 +139,26 @@ export default function SettingsPage() {
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <Label>Full Name</Label>
+                            <Label>First Name</Label>
                             <Input
-                                value={fullName}
-                                onChange={(e) => setFullName(e.target.value)}
+                                value={firstName}
+                                onChange={(e) => setFirstName(e.target.value)}
+                                placeholder="First name"
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label>Timezone</Label>
-                            <Select value={timezone}
-                                    onValueChange={setTimezone}>
-                                <SelectTrigger>
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {[
-                                        'UTC', 'America/New_York',
-                                        'America/Chicago', 'America/Los_Angeles',
-                                        'Europe/London', 'Europe/Paris',
-                                        'Asia/Tokyo', 'Asia/Shanghai',
-                                    ].map((tz) => (
-                                        <SelectItem key={tz} value={tz}>{tz}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            <Label>Last Name</Label>
+                            <Input
+                                value={lastName}
+                                onChange={(e) => setLastName(e.target.value)}
+                                placeholder="Last name"
+                            />
                         </div>
                     </div>
 
                     <Button
                         onClick={() => updateProfileMutation.mutate()}
-                        disabled={updateProfileMutation.isPending}
+                        disabled={updateProfileMutation.isPending || !firstName.trim()}
                     >
                         {updateProfileMutation.isPending
                             ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />

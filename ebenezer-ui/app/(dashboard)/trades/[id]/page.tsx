@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
+import { SecureImage } from '@/components/shared/SecureImage';
 import { tradesApi } from '@/lib/api/trades';
 import {
     formatCurrency, formatPrice, formatDateTime,
@@ -401,7 +402,7 @@ export default function TradeDetailPage() {
                                 <div className="grid grid-cols-2 gap-4">
                                     {trade.screenshots.map((s) => (
                                         <div key={s.id} className="relative group">
-                                            <img
+                                            <SecureImage
                                                 src={s.url}
                                                 alt={s.label ?? 'Screenshot'}
                                                 className="w-full rounded-lg object-cover

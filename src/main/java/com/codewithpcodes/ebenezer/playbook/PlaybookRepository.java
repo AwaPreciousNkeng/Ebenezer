@@ -14,7 +14,7 @@ public interface PlaybookRepository extends JpaRepository<Playbook, UUID> {
 
     Optional<Playbook> findByIdAndUserId(UUID id, UUID userId);
 
-    boolean existsByUserIdAndName(UUID userId, String name);
+    boolean existsByUserIdAndNameAndIsActiveTrue(UUID userId, String name);
 
     // Playbook performance stats
     @Query("""
@@ -24,7 +24,8 @@ public interface PlaybookRepository extends JpaRepository<Playbook, UUID> {
                     COUNT(t) AS totalTrades,
                     COALESCE(SUM(CASE WHEN t.netPnl > 0 THEN 1 ELSE 0 END), 0) AS winningTrades,
                     COALESCE(SUM(t.netPnl), 0) AS totalPnl,
-                    COALESCE(AVG(t.riskReward), 0) AS avgRiskReward
+                    COALESCE(AVG(t.riskReward), 0) AS avgRiskReward,
+                    COALESCE(SUM(CASE WHEN t.isRuleViolated = TRUE THEN 1 ELSE 0 END), 0) AS ruleViolations
                 FROM Playbook p
                 LEFT JOIN p.trades t ON t.status = 'CLOSED'
                 WHERE p.user.id = :userId

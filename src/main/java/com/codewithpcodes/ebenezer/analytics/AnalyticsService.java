@@ -121,6 +121,14 @@ public class AnalyticsService {
         return new DrawdownResponse(maxDrawdown);
     }
 
+    public List<MonthlyPnlProjection> getPnlByMonth(UUID userId, UUID accountId) {
+        return tradeRepository.getPnlByMonth(userId, accountId);
+    }
+
+    public List<AssetClassPnlProjection> getPnlByAssetClass(UUID userId, UUID accountId) {
+        return tradeRepository.getPnlByAssetClass(userId, accountId);
+    }
+
     public StreakResponse getStreak(UUID userId, UUID accountId) {
         log.info("Getting streak for user {} and account {}", userId, accountId);
         List<BigDecimal> pnlList =

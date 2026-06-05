@@ -3,6 +3,7 @@ package com.codewithpcodes.ebenezer.auth;
 import com.codewithpcodes.ebenezer.config.JwtService;
 import com.codewithpcodes.ebenezer.exceptions.DuplicateResourceException;
 import com.codewithpcodes.ebenezer.exceptions.ResourceNotFoundException;
+import com.codewithpcodes.ebenezer.exceptions.UnauthorizedException;
 import com.codewithpcodes.ebenezer.token.Token;
 import com.codewithpcodes.ebenezer.token.TokenRepository;
 import com.codewithpcodes.ebenezer.token.TokenType;
@@ -10,9 +11,7 @@ import com.codewithpcodes.ebenezer.user.Role;
 import com.codewithpcodes.ebenezer.user.User;
 import com.codewithpcodes.ebenezer.user.UserDto;
 import com.codewithpcodes.ebenezer.user.UserRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -22,7 +21,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -120,52 +118,50 @@ public class AuthenticationService {
                         .avatarUrl(user.getAvatarUrl())
                         .timezone("UTC")
                         .role(user.getRole())
-                        .isEmailVerified(user.isEmailVerified())
                         .oauthProvider(user.getOauthProvider())
                         .createdAt(user.getCreatedAt())
                         .build()
         );
     }
 
-    public void refreshToken(
-            HttpServletRequest request,
-            HttpServletResponse response
-    ) throws IOException {
+    public AuthenticationResponse refreshToken(HttpServletRequest request) {
         final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-        final String refreshToken;
-        final String userEmail;
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) return;
-        refreshToken = authHeader.substring(7);
-        userEmail = jwtService.extractUsername(refreshToken);
-
-        if (userEmail != null) {
-            User user = userRepository.findByEmail(userEmail)
-                    .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + userEmail));
-
-            if (jwtService.isTokenValid(refreshToken, user)) {
-                var accessToken = jwtService.generateToken(user);
-                revokeAllUserTokens(user);
-                saveUserToken(user, accessToken);
-
-                AuthenticationResponse authResponse = AuthenticationResponse.fromAuth(
-                        accessToken,
-                        refreshToken,
-                        UserDto.builder()
-                                .id(user.getId())
-                                .email(user.getEmail())
-                                .fullName(user.getFullName())
-                                .avatarUrl(user.getAvatarUrl())
-                                .timezone("UTC")
-                                .role(user.getRole())
-                                .isEmailVerified(user.isEmailVerified())
-                                .oauthProvider(user.getOauthProvider())
-                                .createdAt(user.getCreatedAt())
-                                .build()
-                );
-                new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
-            }
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new UnauthorizedException("Missing refresh token");
         }
+
+        String refreshToken = authHeader.substring(7);
+        String userEmail = jwtService.extractUsername(refreshToken);
+        if (userEmail == null) {
+            throw new UnauthorizedException("Invalid refresh token");
+        }
+
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (!jwtService.isTokenValid(refreshToken, user)) {
+            throw new UnauthorizedException("Invalid or expired refresh token");
+        }
+
+        var accessToken = jwtService.generateToken(user);
+        revokeAllUserTokens(user);
+        saveUserToken(user, accessToken);
+
+        return AuthenticationResponse.fromAuth(
+                accessToken,
+                refreshToken,
+                UserDto.builder()
+                        .id(user.getId())
+                        .email(user.getEmail())
+                        .fullName(user.getFullName())
+                        .avatarUrl(user.getAvatarUrl())
+                        .timezone("UTC")
+                        .role(user.getRole())
+                        .oauthProvider(user.getOauthProvider())
+                        .createdAt(user.getCreatedAt())
+                        .build()
+        );
     }
 
     public AuthenticationResponse createAdmin(CreateAdminRequest request) {
@@ -204,7 +200,6 @@ public class AuthenticationService {
                         .avatarUrl(savedAdmin.getAvatarUrl())
                         .timezone("UTC")
                         .role(savedAdmin.getRole())
-                        .isEmailVerified(savedAdmin.isEmailVerified())
                         .oauthProvider(savedAdmin.getOauthProvider())
                         .createdAt(savedAdmin.getCreatedAt())
                         .build()

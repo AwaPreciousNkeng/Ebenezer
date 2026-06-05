@@ -83,11 +83,12 @@ export function TradeFilters({ filters, onChange }: TradeFiltersProps) {
                 </SelectTrigger>
                 <SelectContent>
                     <SelectItem value="ALL">All Assets</SelectItem>
-                    <SelectItem value="STOCK">Stock</SelectItem>
-                    <SelectItem value="FUTURES">Futures</SelectItem>
                     <SelectItem value="FOREX">Forex</SelectItem>
+                    <SelectItem value="METALS">Metals</SelectItem>
                     <SelectItem value="CRYPTO">Crypto</SelectItem>
-                    <SelectItem value="OPTIONS">Options</SelectItem>
+                    <SelectItem value="INDICES">Indices</SelectItem>
+                    <SelectItem value="STOCK">Stock</SelectItem>
+                    <SelectItem value="ENERGY">Energy</SelectItem>
                 </SelectContent>
             </Select>
 

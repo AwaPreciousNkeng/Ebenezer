@@ -3,7 +3,7 @@ export type Role = 'USER' | 'ADMIN';
 export type TradeDirection = 'LONG' | 'SHORT';
 export type TradeStatus = 'OPEN' | 'CLOSED' | 'PARTIAL';
 export type AssetClass =
-    | 'STOCK' | 'FUTURES' | 'FOREX' | 'CRYPTO' | 'OPTIONS';
+    | 'STOCK' | 'INDICES' | 'FOREX' | 'CRYPTO' | 'METALS' | 'ENERGY';
 export type AccountType = 'LIVE' | 'DEMO' | 'PROP';
 export type TagType = 'SETUP' | 'MISTAKE' | 'EMOTION' | 'CUSTOM';
 export type SnapshotPeriod = 'DAILY' | 'WEEKLY' | 'MONTHLY';
@@ -61,8 +61,8 @@ export interface LoginRequest {
 }
 
 export interface UpdateProfileRequest {
-    firstName?: string;
-    lastName?: string;
+    firstName: string;
+    lastName: string;
 }
 
 export interface ChangePasswordRequest {
@@ -109,6 +109,8 @@ export interface TradeResponse {
     accountId: string;
     accountName: string;
     symbol: string;
+    swap?: number;
+    brokerTradeId?: string;
     assetClass: AssetClass;
     direction: TradeDirection;
     status: TradeStatus;
@@ -141,6 +143,7 @@ export interface TradeResponse {
 export interface TradeRequest {
     accountId: string;
     symbol: string;
+    swap?: number;
     assetClass: AssetClass;
     direction: TradeDirection;
     status?: TradeStatus;
@@ -197,6 +200,7 @@ export interface PlaybookStats {
     winningTrades: number;
     totalPnl: number;
     avgRiskReward: number;
+    ruleViolations: number;
 }
 
 // ─── Journal ──────────────────────────────────────────────
@@ -256,6 +260,19 @@ export interface DayOfWeekPnl {
     totalPnl: number;
 }
 
+export interface MonthlyPnl {
+    year: number;
+    month: number;
+    totalTrades: number;
+    totalPnl: number;
+}
+
+export interface AssetClassPnl {
+    assetClass: string;
+    totalTrades: number;
+    totalPnl: number;
+}
+
 export interface DrawdownResponse {
     maxDrawdown: number;
 }
@@ -273,8 +290,13 @@ export interface AnalyticsFilterParams {
 }
 
 // ─── Import ───────────────────────────────────────────────
-export interface ImportResult {
-    totalRows: number;
-    imported: number;
-    skipped: number;
+export type ImportBatchStatus = 'PROCESSING' | 'COMPLETED' | 'FAILED';
+
+export interface ImportBatch {
+    id: string;
+    filename: string;
+    status: ImportBatchStatus;
+    rowCount: number;
+    rejectedCount: number;
+    importedAt: string;
 }

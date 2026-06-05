@@ -216,7 +216,7 @@ export function Header() {
                             variant="ghost"
                             className="flex items-center gap-2 px-2"
                         >
-                            <Avatar className="h-8 w-8">
+                            <Avatar key={user?.avatarUrl} className="h-8 w-8">
                                 <AvatarImage src={user?.avatarUrl}/>
                                 <AvatarFallback className="bg-primary
                   text-primary-foreground text-xs">

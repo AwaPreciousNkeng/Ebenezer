@@ -2,6 +2,7 @@ package com.codewithpcodes.ebenezer.account;
 
 import com.codewithpcodes.ebenezer.trade.Trade;
 import com.codewithpcodes.ebenezer.user.User;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -26,6 +27,7 @@ public class Account {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
@@ -52,6 +54,7 @@ public class Account {
     @Builder.Default
     private boolean isActive = true;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "account",
             cascade = CascadeType.ALL,
             orphanRemoval = true)

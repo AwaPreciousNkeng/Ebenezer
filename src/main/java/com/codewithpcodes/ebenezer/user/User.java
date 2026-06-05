@@ -4,6 +4,7 @@ import com.codewithpcodes.ebenezer.account.Account;
 import com.codewithpcodes.ebenezer.journal.JournalEntry;
 import com.codewithpcodes.ebenezer.playbook.Playbook;
 import com.codewithpcodes.ebenezer.token.Token;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.annotation.Nonnull;
 import jakarta.persistence.*;
 import lombok.*;
@@ -40,7 +41,7 @@ public class User implements UserDetails {
     @Column(unique = true, nullable = false)
     private String email;
 
-    @Column(nullable = false)
+    @JsonIgnore
     private String password;
 
     @Enumerated(EnumType.STRING)
@@ -63,31 +64,38 @@ public class User implements UserDetails {
     @Column(name = "avatar_url", nullable = false)
     private String avatarUrl;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Token> tokens;
 
     @Builder.Default
     private boolean isActive = true;
 
-    private OauthProvider oauthProvider;
-    private String oauthId;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private OauthProvider oauthProvider = OauthProvider.NONE;
+    private String providerId;
 
     @CreationTimestamp
-    private OffsetDateTime createdAt;
+    @Builder.Default
+    private OffsetDateTime createdAt = OffsetDateTime.now();
 
     @UpdateTimestamp
     private OffsetDateTime updatedAt;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "user",
             cascade = CascadeType.ALL,
             orphanRemoval = true)
     private List<Account> accounts = new ArrayList<>();
 
+    @JsonIgnore
     @OneToMany(mappedBy = "user",
             cascade = CascadeType.ALL,
             orphanRemoval = true)
     private List<Playbook> playbooks = new ArrayList<>();
 
+    @JsonIgnore
     @OneToMany(mappedBy = "user",
             cascade = CascadeType.ALL,
             orphanRemoval = true)

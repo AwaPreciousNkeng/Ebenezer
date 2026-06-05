@@ -1,6 +1,9 @@
 'use client';
 import React, { useState, useRef } from 'react';
-import { Upload, FileText, CheckCircle, Loader2 } from 'lucide-react';
+import {
+    Upload, FileText, CheckCircle2, XCircle,
+    Loader2, AlertCircle,
+} from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -10,28 +13,19 @@ import {
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { importApi } from '@/lib/api/import';
 import { accountsApi } from '@/lib/api/accounts';
-import { cn } from '@/lib/utils';
-import type { ImportResult } from '@/types';
-
-const BROKERS = [
-    { value: 'MT4',       label: 'MetaTrader 4' },
-    { value: 'MT5',       label: 'MetaTrader 5' },
-    { value: 'TRADOVATE', label: 'Tradovate' },
-    { value: 'IBKR',      label: 'Interactive Brokers' },
-    { value: 'WEBULL',    label: 'Webull' },
-    { value: 'GENERIC',   label: 'Generic CSV' },
-];
+import { cn, formatDate } from '@/lib/utils';
+import type { ImportBatch } from '@/types';
 
 export default function ImportPage() {
     const qc = useQueryClient();
     const fileRef = useRef<HTMLInputElement>(null);
     const [file, setFile] = useState<File | null>(null);
     const [accountId, setAccountId] = useState('');
-    const [broker, setBroker] = useState('');
-    const [result, setResult] = useState<ImportResult | null>(null);
+    const [result, setResult] = useState<ImportBatch | null>(null);
     const [dragging, setDragging] = useState(false);
 
     const { data: accounts, isLoading: isLoadingAccounts } = useQuery({
@@ -40,12 +34,12 @@ export default function ImportPage() {
     });
 
     const mutation = useMutation({
-        mutationFn: () => importApi.csv(file!, accountId, broker),
+        mutationFn: () => importApi.statement(file!, accountId),
         onSuccess: async (res) => {
-            setResult(res.data.data);
-            toast.success('Import completed!');
-            setFile(null); // Clear file so they can import another
-            await qc.invalidateQueries({ queryKey: ['trades'] }); // Promise handled!
+            setResult(res.data);
+            toast.success('Statement imported successfully');
+            setFile(null);
+            await qc.invalidateQueries({ queryKey: ['trades'] });
         },
         onError: (err: any) =>
             toast.error(err.response?.data?.message || 'Import failed'),
@@ -55,73 +49,68 @@ export default function ImportPage() {
         e.preventDefault();
         setDragging(false);
         const dropped = e.dataTransfer.files[0];
-        // Convert to lowercase to catch .CSV as well as .csv
-        if (dropped?.name.toLowerCase().endsWith('.csv')) {
+        if (dropped?.name.toLowerCase().endsWith('.pdf')) {
             setFile(dropped);
-            setResult(null); // Reset previous results if uploading a new file
+            setResult(null);
         } else {
-            toast.error('Please drop a CSV file');
+            toast.error('Please drop a PDF file');
         }
     };
 
-    const canSubmit = file && accountId && broker;
+    const canSubmit = file && accountId;
+
+    const statusBadge = (status: ImportBatch['status']) => {
+        const map = {
+            COMPLETED: { label: 'Completed', className: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' },
+            PROCESSING: { label: 'Processing', className: 'bg-blue-500/10 text-blue-600 border-blue-500/20' },
+            FAILED:     { label: 'Failed',     className: 'bg-red-500/10 text-red-600 border-red-500/20' },
+        };
+        const { label, className } = map[status] ?? map.FAILED;
+        return <Badge className={cn('border', className)}>{label}</Badge>;
+    };
 
     return (
         <div className="max-w-2xl space-y-6">
             <PageHeader
-                title="Import Trades"
-                description="Upload a CSV file from your broker"
+                title="Import Statement"
+                description="Upload your Exness trading statement (PDF)"
             />
 
             <Card>
                 <CardHeader>
                     <CardTitle className="text-base">Upload Settings</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label>Account *</Label>
-                            <Select
-                                value={accountId}
-                                onValueChange={setAccountId}
-                                disabled={isLoadingAccounts}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder={isLoadingAccounts ? "Loading..." : "Select account"} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {accounts?.map((a) => (
-                                        <SelectItem key={a.id} value={a.id}>
-                                            {a.accountName}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label>Broker / Format *</Label>
-                            <Select value={broker} onValueChange={setBroker}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select broker" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {BROKERS.map((b) => (
-                                        <SelectItem key={b.value} value={b.value}>
-                                            {b.label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
+                <CardContent className="space-y-5">
+                    <div className="space-y-2">
+                        <Label>Account *</Label>
+                        <Select
+                            value={accountId}
+                            onValueChange={setAccountId}
+                            disabled={isLoadingAccounts}
+                        >
+                            <SelectTrigger>
+                                <SelectValue
+                                    placeholder={
+                                        isLoadingAccounts ? 'Loading...' : 'Select account'
+                                    }
+                                />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {accounts?.map((a) => (
+                                    <SelectItem key={a.id} value={a.id}>
+                                        <span>{a.accountName}</span>
+                                        <span className="ml-2 text-xs text-muted-foreground">
+                                            {a.brokerName ?? a.accountType} · {a.currency}
+                                        </span>
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
 
                     {/* Drop Zone */}
                     <div
-                        onDragOver={(e) => {
-                            e.preventDefault();
-                            setDragging(true);
-                        }}
+                        onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
                         onDragLeave={() => setDragging(false)}
                         onDrop={handleDrop}
                         onClick={() => fileRef.current?.click()}
@@ -131,20 +120,17 @@ export default function ImportPage() {
                             'cursor-pointer transition-colors',
                             dragging
                                 ? 'border-primary bg-primary/5'
-                                : 'border-border hover:border-muted-foreground'
+                                : 'border-border hover:border-muted-foreground/50'
                         )}
                     >
                         <input
                             ref={fileRef}
                             type="file"
-                            accept=".csv"
+                            accept=".pdf"
                             className="hidden"
                             onChange={(e) => {
                                 const f = e.target.files?.[0];
-                                if (f) {
-                                    setFile(f);
-                                    setResult(null);
-                                }
+                                if (f) { setFile(f); setResult(null); }
                             }}
                         />
                         {file ? (
@@ -157,10 +143,7 @@ export default function ImportPage() {
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setFile(null);
-                                    }}
+                                    onClick={(e) => { e.stopPropagation(); setFile(null); }}
                                 >
                                     Remove
                                 </Button>
@@ -169,9 +152,7 @@ export default function ImportPage() {
                             <>
                                 <Upload className="w-10 h-10 text-muted-foreground" />
                                 <div className="text-center">
-                                    <p className="font-medium">
-                                        Drop your CSV here
-                                    </p>
+                                    <p className="font-medium">Drop your PDF here</p>
                                     <p className="text-sm text-muted-foreground">
                                         or click to browse files
                                     </p>
@@ -185,60 +166,99 @@ export default function ImportPage() {
                         disabled={!canSubmit || mutation.isPending}
                         onClick={() => mutation.mutate()}
                     >
-                        {mutation.isPending && (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        )}
-                        Import Trades
+                        {mutation.isPending
+                            ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            : <Upload className="mr-2 h-4 w-4" />}
+                        {mutation.isPending ? 'Importing...' : 'Import Statement'}
                     </Button>
                 </CardContent>
             </Card>
 
             {/* Result */}
             {result && (
-                <Card className="border-emerald-500/30 bg-emerald-500/5">
+                <Card className={cn(
+                    'border',
+                    result.status === 'COMPLETED'
+                        ? 'border-emerald-500/30 bg-emerald-500/5'
+                        : result.status === 'FAILED'
+                            ? 'border-red-500/30 bg-red-500/5'
+                            : 'border-blue-500/30 bg-blue-500/5'
+                )}>
                     <CardContent className="p-6">
-                        <div className="flex items-center gap-3 mb-4">
-                            <CheckCircle className="w-6 h-6 text-emerald-500" />
-                            <h3 className="font-semibold">Import Complete</h3>
+                        <div className="flex items-center justify-between mb-5">
+                            <div className="flex items-center gap-3">
+                                {result.status === 'COMPLETED'
+                                    ? <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+                                    : result.status === 'FAILED'
+                                        ? <XCircle className="w-6 h-6 text-red-500" />
+                                        : <Loader2 className="w-6 h-6 text-blue-500 animate-spin" />}
+                                <div>
+                                    <p className="font-semibold">Import Result</p>
+                                    <p className="text-xs text-muted-foreground truncate max-w-xs">
+                                        {result.filename}
+                                    </p>
+                                </div>
+                            </div>
+                            {statusBadge(result.status)}
                         </div>
-                        <div className="grid grid-cols-3 gap-4 text-center">
+
+                        <div className="grid grid-cols-3 gap-3 text-center">
                             {[
-                                { label: 'Total Rows', value: result.totalRows,
-                                    color: 'text-foreground' },
-                                { label: 'Imported', value: result.imported,
-                                    color: 'text-emerald-500' },
-                                { label: 'Skipped', value: result.skipped,
-                                    color: 'text-yellow-500' },
+                                {
+                                    label: 'Imported',
+                                    value: result.rowCount - result.rejectedCount,
+                                    color: 'text-emerald-500',
+                                },
+                                {
+                                    label: 'Rejected',
+                                    value: result.rejectedCount,
+                                    color: result.rejectedCount > 0
+                                        ? 'text-yellow-500' : 'text-muted-foreground',
+                                },
+                                {
+                                    label: 'Total Rows',
+                                    value: result.rowCount,
+                                    color: 'text-foreground',
+                                },
                             ].map(({ label, value, color }) => (
-                                <div key={label} className="p-3 rounded-lg bg-background">
-                                    <p className={`text-2xl font-bold ${color}`}>
+                                <div key={label}
+                                     className="p-3 rounded-lg bg-background/60 border border-border">
+                                    <p className={cn('text-2xl font-bold', color)}>
                                         {value}
                                     </p>
-                                    <p className="text-sm text-muted-foreground">
+                                    <p className="text-xs text-muted-foreground mt-0.5">
                                         {label}
                                     </p>
                                 </div>
                             ))}
                         </div>
+
+                        <p className="text-xs text-muted-foreground mt-4 text-right">
+                            Imported {formatDate(result.importedAt)}
+                        </p>
                     </CardContent>
                 </Card>
             )}
 
-            {/* Format Guide */}
+            {/* Info */}
             <Card>
-                <CardHeader>
-                    <CardTitle className="text-sm text-muted-foreground uppercase tracking-wide">
-                        Generic CSV Format
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <code className="text-xs bg-muted p-3 rounded-lg block overflow-x-auto whitespace-nowrap">
-                        symbol, direction, quantity, entryPrice, exitPrice, entryDate, exitDate, commission, assetClass
-                    </code>
-                    <p className="text-xs text-muted-foreground mt-2">
-                        Date format: ISO 8601 — e.g.{' '}
-                        <code>2024-01-15T09:30:00+00:00</code>
-                    </p>
+                <CardContent className="p-5">
+                    <div className="flex gap-3">
+                        <AlertCircle className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
+                        <div className="space-y-1">
+                            <p className="text-sm font-medium">Supported format</p>
+                            <p className="text-sm text-muted-foreground">
+                                Exness account statements in PDF format. Download your
+                                statement from the Exness Personal Area under{' '}
+                                <span className="font-medium text-foreground">
+                                    Reports → Account History
+                                </span>.
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                                Duplicate trades are automatically detected and skipped.
+                            </p>
+                        </div>
+                    </div>
                 </CardContent>
             </Card>
         </div>

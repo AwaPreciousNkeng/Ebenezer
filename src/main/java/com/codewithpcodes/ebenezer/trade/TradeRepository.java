@@ -52,8 +52,8 @@ public interface TradeRepository extends JpaRepository<Trade, UUID> {
                 WHERE t.user.id = :userId
                   AND (CAST(:accountId AS uuid) IS NULL OR t.account.id = :accountId)
                   AND t.status = 'CLOSED'
-                  AND t.entryDate >= :from
-                  AND t.entryDate <= :to
+                  AND (coalesce(:from, t.entryDate) <= t.entryDate)
+                  AND (coalesce(:to, t.entryDate) >= t.entryDate)
                 GROUP BY CAST(t.entryDate AS LocalDate)
                 ORDER BY CAST(t.entryDate AS LocalDate) ASC
             """)
@@ -134,6 +134,40 @@ public interface TradeRepository extends JpaRepository<Trade, UUID> {
                 ORDER BY t.entryDate ASC
             """)
     List<BigDecimal> getOrderedPnlList(
+            @Param("userId") UUID userId,
+            @Param("accountId") UUID accountId
+    );
+
+    @Query("""
+                SELECT CAST(FUNCTION('date_part', 'year', t.entryDate) AS integer) AS year,
+                       CAST(FUNCTION('date_part', 'month', t.entryDate) AS integer) AS month,
+                       COUNT(t) AS totalTrades,
+                       SUM(t.netPnl) AS totalPnl
+                FROM Trade t
+                WHERE t.user.id = :userId
+                  AND t.status = 'CLOSED'
+                  AND (CAST(:accountId AS uuid) IS NULL OR t.account.id = :accountId)
+                GROUP BY CAST(FUNCTION('date_part', 'year', t.entryDate) AS integer),
+                         CAST(FUNCTION('date_part', 'month', t.entryDate) AS integer)
+                ORDER BY year ASC, month ASC
+            """)
+    List<MonthlyPnlProjection> getPnlByMonth(
+            @Param("userId") UUID userId,
+            @Param("accountId") UUID accountId
+    );
+
+    @Query("""
+                SELECT CAST(t.assetClass AS string) AS assetClass,
+                       COUNT(t) AS totalTrades,
+                       SUM(t.netPnl) AS totalPnl
+                FROM Trade t
+                WHERE t.user.id = :userId
+                  AND t.status = 'CLOSED'
+                  AND (CAST(:accountId AS uuid) IS NULL OR t.account.id = :accountId)
+                GROUP BY t.assetClass
+                ORDER BY totalPnl DESC
+            """)
+    List<AssetClassPnlProjection> getPnlByAssetClass(
             @Param("userId") UUID userId,
             @Param("accountId") UUID accountId
     );

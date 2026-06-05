@@ -99,7 +99,7 @@ export function Sidebar() {
             <div className="border-t border-border p-3">
                 <div className="flex items-center gap-2 px-2 py-2 rounded-lg
           hover:bg-accent group">
-                    <Avatar className="h-8 w-8 shrink-0">
+                    <Avatar key={user?.avatarUrl} className="h-8 w-8 shrink-0">
                         <AvatarImage src={user?.avatarUrl} />
                         <AvatarFallback className="bg-primary text-primary-foreground
               text-xs">

@@ -22,7 +22,16 @@ spring:
   jackson:
     deserialization:
       FAIL_ON_UNKNOWN_PROPERTIES: false
-
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 211915901556-gvgjs77gbt029f0jkurm99je92qc1scl.apps.googleusercontent.com
+            client-secret: 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
+            scope:
+              - email
+              - profile
 server:
   port: 8080
   compression:
@@ -39,3 +48,5 @@ application:
     expiration: 86400000 #24 hours
     refresh-token:
       expiration: 604800000 #7 days
+  oauth2:
+    redirect-url: http://localhost:3000/oauth2/redirect

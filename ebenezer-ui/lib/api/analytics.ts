@@ -1,8 +1,8 @@
 import { apiClient } from './client';
 import type {
     ApiResponse, TradeSummary, EquityCurvePoint,
-    SymbolPnl, DayOfWeekPnl, DrawdownResponse,
-    StreakResponse, AnalyticsFilterParams
+    SymbolPnl, DayOfWeekPnl, MonthlyPnl, AssetClassPnl,
+    DrawdownResponse, StreakResponse, AnalyticsFilterParams
 } from '@/types';
 
 export const analyticsApi = {
@@ -29,4 +29,12 @@ export const analyticsApi = {
     streak: (accountId?: string) =>
         apiClient.get<ApiResponse<StreakResponse>>(
             '/analytics/streak', { params: { accountId } }),
+
+    pnlByMonth: (accountId?: string) =>
+        apiClient.get<ApiResponse<MonthlyPnl[]>>(
+            '/analytics/pnl-by-month', { params: { accountId } }),
+
+    pnlByAssetClass: (accountId?: string) =>
+        apiClient.get<ApiResponse<AssetClassPnl[]>>(
+            '/analytics/pnl-by-asset-class', { params: { accountId } }),
 };

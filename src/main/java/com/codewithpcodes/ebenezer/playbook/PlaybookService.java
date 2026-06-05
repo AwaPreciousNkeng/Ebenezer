@@ -53,10 +53,10 @@ public class PlaybookService {
             PlaybookRequest request
     ) {
         log.info("Creating playbook for user {}", userId);
-        if (playbookRepository.existsByUserIdAndName(
+        if (playbookRepository.existsByUserIdAndNameAndIsActiveTrue(
                 userId, request.getName())) {
             throw new DuplicateResourceException(
-                    "Playbook with that name already exists");
+                    "A playbook with that name already exists");
         }
 
         User user = userRepository.findById(userId)

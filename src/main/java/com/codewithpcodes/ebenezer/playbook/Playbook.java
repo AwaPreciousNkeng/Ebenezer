@@ -20,12 +20,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Builder
 @Entity
-@Table(
-        name = "playbooks",
-        uniqueConstraints = @UniqueConstraint(
-                columnNames = {"user_id", "name"}
-        )
-)
+@Table(name = "playbooks")
 public class Playbook {
 
     @Id

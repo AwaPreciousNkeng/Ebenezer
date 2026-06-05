@@ -15,7 +15,9 @@ export const authApi = {
         apiClient.post<ApiResponse<{ message: string }>>('/auth/logout'),
 
     refresh: (refreshToken: string) =>
-        apiClient.post<ApiResponse<AuthResponse>>('/auth/refresh-token', { refreshToken }),
+        apiClient.post<AuthResponse>('/auth/refresh-token', null, {
+            headers: { Authorization: `Bearer ${refreshToken}` },
+        }),
 
     verifyEmail: (token: string) =>
         apiClient.get<ApiResponse<{ message: string }>>(
@@ -32,7 +34,7 @@ export const authApi = {
     getMe: () =>
         apiClient.get<ApiResponse<UserDto>>('/users/me'),
 
-    updateProfile: (data: { fullName?: string; timezone?: string }) =>
+    updateProfile: (data: { firstName: string; lastName: string }) =>
         apiClient.put<ApiResponse<UserDto>>('/users/me', data),
 
     changePassword: (data: {

@@ -31,7 +31,7 @@ const emptyToUndefined = z.literal('').transform(() => undefined);
 const schema = z.object({
     accountId: z.string().min(1, 'Account is required'),
     symbol: z.string().min(1, 'Symbol is required'),
-    assetClass: z.enum(['STOCK', 'FUTURES', 'FOREX', 'CRYPTO', 'OPTIONS']),
+    assetClass: z.enum(['STOCK', 'INDICES', 'FOREX', 'CRYPTO', 'METALS', 'ENERGY']),
     direction: z.enum(['LONG', 'SHORT']),
     status: z.enum(['OPEN', 'CLOSED', 'PARTIAL']),
 
@@ -43,6 +43,7 @@ const schema = z.object({
     stopLoss: z.union([z.coerce.number().positive(), emptyToUndefined, z.undefined()]),
     takeProfit: z.union([z.coerce.number().positive(), emptyToUndefined, z.undefined()]),
     plannedRisk: z.union([z.coerce.number().positive(), emptyToUndefined, z.undefined()]),
+    swap: z.union([z.coerce.number(), emptyToUndefined, z.undefined()]),
 
     commission: z.union([z.coerce.number().min(0), emptyToUndefined, z.undefined()]),
     executionRating: z.union([z.coerce.number().min(1).max(5), emptyToUndefined, z.undefined()]),
@@ -175,7 +176,7 @@ export default function NewTradePage() {
                                                     <SelectValue placeholder="Select class"/>
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {['STOCK', 'FUTURES', 'FOREX', 'CRYPTO', 'OPTIONS'].map((v) => (
+                                                    {['STOCK', 'INDICES', 'FOREX', 'CRYPTO', 'METALS', 'ENERGY'].map((v) => (
                                                         <SelectItem key={v} value={v}>{v}</SelectItem>
                                                     ))}
                                                 </SelectContent>
@@ -265,6 +266,11 @@ export default function NewTradePage() {
                         <div className="space-y-2">
                             <Label>Commission</Label>
                             <Input type="number" step="any" placeholder="0.00" {...register('commission')} />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label>Swap</Label>
+                            <Input type="number" step="any" placeholder="0.00" {...register('swap')} />
                         </div>
 
                         <div className="space-y-2">

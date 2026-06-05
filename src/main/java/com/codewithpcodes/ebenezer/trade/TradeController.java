@@ -1,6 +1,8 @@
 package com.codewithpcodes.ebenezer.trade;
 
+import com.codewithpcodes.ebenezer.exceptions.ResourceNotFoundException;
 import com.codewithpcodes.ebenezer.handler.ApiResponse;
+import com.codewithpcodes.ebenezer.storage.FileService;
 import com.codewithpcodes.ebenezer.user.MessageResponse;
 import com.codewithpcodes.ebenezer.user.User;
 import jakarta.validation.Valid;
@@ -10,11 +12,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.UUID;
 
 @RestController
@@ -24,6 +28,8 @@ public class TradeController {
 
     private final TradeService tradeService;
     private final TradeScreenshotService screenshotService;
+    private final TradeScreenshotRepository screenshotRepository;
+    private final FileService fileService;
 
     @GetMapping
     public ResponseEntity<ApiResponse<Page<TradeResponse>>> getTrades(
@@ -100,5 +106,32 @@ public class TradeController {
         MessageResponse response =
                 screenshotService.delete(principal.getId(), id, screenshotId);
         return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    /** Streams a screenshot image — requires ownership (trade must belong to principal). */
+    @GetMapping("/{id}/screenshots/{screenshotId}/file")
+    public ResponseEntity<byte[]> getScreenshotFile(
+            @AuthenticationPrincipal User principal,
+            @PathVariable UUID id,
+            @PathVariable UUID screenshotId) throws IOException {
+
+        // Verify the trade belongs to this user
+        tradeService.getTradeById(principal.getId(), id);
+
+        TradeScreenshot screenshot = screenshotRepository
+                .findByIdAndTradeId(screenshotId, id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Screenshot not found"));
+
+        byte[] bytes = fileService.readFile(screenshot.getUrl());
+        if (bytes == null) return ResponseEntity.notFound().build();
+
+        // Detect content type from the stored path
+        String path = screenshot.getUrl().toLowerCase();
+        MediaType type = path.endsWith(".png")  ? MediaType.IMAGE_PNG
+                       : path.endsWith(".webp") ? MediaType.parseMediaType("image/webp")
+                       : MediaType.IMAGE_JPEG;
+
+        return ResponseEntity.ok().contentType(type).body(bytes);
     }
 }

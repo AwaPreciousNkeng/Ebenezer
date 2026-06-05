@@ -1,7 +1,9 @@
 package com.codewithpcodes.ebenezer.analytics;
 
 import com.codewithpcodes.ebenezer.handler.ApiResponse;
+import com.codewithpcodes.ebenezer.trade.AssetClassPnlProjection;
 import com.codewithpcodes.ebenezer.trade.DayOfWeekPnlProjection;
+import com.codewithpcodes.ebenezer.trade.MonthlyPnlProjection;
 import com.codewithpcodes.ebenezer.trade.SymbolPnlProjection;
 import com.codewithpcodes.ebenezer.trade.TradeSummaryResponse;
 import com.codewithpcodes.ebenezer.user.User;
@@ -77,6 +79,24 @@ public class AnalyticsController {
         DrawdownResponse drawdown =
                 analyticsService.getMaxDrawdown(principal.getId(), accountId);
         return ResponseEntity.ok(ApiResponse.success(drawdown));
+    }
+
+    @GetMapping("/pnl-by-month")
+    public ResponseEntity<ApiResponse<List<MonthlyPnlProjection>>> getPnlByMonth(
+            @AuthenticationPrincipal User principal,
+            @RequestParam(required = false) UUID accountId) {
+        List<MonthlyPnlProjection> data =
+                analyticsService.getPnlByMonth(principal.getId(), accountId);
+        return ResponseEntity.ok(ApiResponse.success(data));
+    }
+
+    @GetMapping("/pnl-by-asset-class")
+    public ResponseEntity<ApiResponse<List<AssetClassPnlProjection>>> getPnlByAssetClass(
+            @AuthenticationPrincipal User principal,
+            @RequestParam(required = false) UUID accountId) {
+        List<AssetClassPnlProjection> data =
+                analyticsService.getPnlByAssetClass(principal.getId(), accountId);
+        return ResponseEntity.ok(ApiResponse.success(data));
     }
 
     @GetMapping("/streak")

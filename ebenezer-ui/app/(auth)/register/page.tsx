@@ -12,6 +12,7 @@ import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
 import {authApi} from '@/lib/api/auth';
+import {GoogleAuthButton} from '@/components/auth/GoogleAuthButton';
 
 const schema = z.object({
     firstName: z.string().trim().min(2, 'First name must be at least 2 characters'),
@@ -133,6 +134,19 @@ export default function RegisterPage() {
                     Create Account
                 </Button>
             </form>
+
+            <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-border"/>
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">
+                        or sign up with
+                    </span>
+                </div>
+            </div>
+
+            <GoogleAuthButton label="Sign up with Google"/>
 
             <p className="text-center text-muted-foreground text-sm">
                 Already have an account?{' '}
