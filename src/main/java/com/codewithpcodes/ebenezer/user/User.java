@@ -73,6 +73,7 @@ public class User implements UserDetails {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @Builder.Default
     private OauthProvider oauthProvider = OauthProvider.NONE;
     private String providerId;
 
