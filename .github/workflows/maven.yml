@@ -51,7 +51,7 @@ jobs:
           SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/ebenezer
           SPRING_DATASOURCE_USERNAME: pcodes
           SPRING_DATASOURCE_PASSWORD: pcodes
-        run: mvn -B package -e --file pom.xml
+        run: mvn -B package -e --file Ebenezer-server/pom.xml
 
       # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
       - name: Update dependency graph
