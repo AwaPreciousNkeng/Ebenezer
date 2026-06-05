@@ -1,33 +1,20 @@
-HELP.md
-target/
-.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+Ebenezer-server/HELP.md
+Ebenezer-server/target/
+Ebenezer-server/.mvn/wrapper/maven-wrapper.jar
+Ebenezer-server/!**/src/main/**/target/
+Ebenezer-server/!**/src/test/**/target/
 
 ### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
+Ebenezer-server/.apt_generated
+Ebenezer-server/.classpath
+Ebenezer-server/.factorypath
+Ebenezer-server/.project
+Ebenezer-server/.settings
+Ebenezer-server/.springBeans
+Ebenezer-server/.sts4-cache
 
 ### IntelliJ IDEA ###
 .idea
 *.iws
 *.iml
 *.ipr
-
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
-
-### VS Code ###
-.vscode/
